@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # Serviço da nossa aplicação Go
+  app:
+    build: .
+    image: organizador-de-estudos-app
+    # Renomeando o contêiner para facilitar a identificação
+    container_name: organizador_app
+    ports:
+      # Expõe a porta 8080 do contêiner para a porta 8080 da sua máquina
+      - "8080:8080"
+    volumes:
+      - .:/app
+    # Carrega as variáveis de ambiente do arquivo .env
+    env_file:
+      - .env
+    # Garante que o banco de dados (db) inicie antes da nossa aplicação
+    depends_on:
+      - db
+    # Comando para recompilar e rodar a aplicação sempre que o contêiner iniciar
+    command: go run main.go
+
+  # Serviço do banco de dados PostgreSQL
+  db:
+    image: postgres:14-alpine
+    container_name: organizador_db
+    environment:
+      # As senhas e nomes de usuário/banco são carregados do arquivo .env
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      # Expõe a porta do Postgres para a sua máquina, caso queira conectar com um cliente de BD
+      - "5432:5432"
+    volumes:
+      # Garante que os dados do Postgres persistam mesmo se o contêiner for recriado
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
